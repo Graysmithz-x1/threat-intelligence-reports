@@ -85,3 +85,23 @@ Skrip mengirimkan permintaan HTTP ke noah-sk[.]com. Jika respon JSON mengembalik
 | **Indikator Teknis** | Biner ini diketahui berfungsi sebagai **Trojan Injector**, bertujuan menyisipkan kode berbahaya ke proses sistem yang sah (PID 2116) untuk menghindari deteksi dan mempertahankan persistensi di memori. |
 | SHA256 Hash Biner | f7183fd3ffcfb291ald92dec3e551b89eb060lad5d574550bf86324161abd3af |
 | **Hasil Deteksi AV (OPSWWAT META DEFENDER)**| 9/26 Vendor Detections (MALICIOUS) 
+------
+
+### Hasil Deteksi Vendor Utama
+- Bitdefender & Emsisoft: Gen:Variant.Yogi.48158 (Trojan/Stealer Generic Variant)
+- Huorong: HVM:Trojan/Injector.dn (Process Injector Capability)
+- Avira & Vir.IT : TR/W64.Agent / Trojan.Win64.Agent.KBX (64-bit Trojan Agent)
+- Ahnlab: Trojan /Win.Generic
+---
+## 6 IOC 
+
+|Tipe| Nilai |Keterangan |
+|---|---|---|
+| Domain | cn-netflix[.]cn | Phishing Site |
+| IP Address | 154.19.248.17 | Phishing Site |
+| SHA256 Hash Biner | f7183fd3ffcfb291ald92dec3e551b89eb060lad5d574550bf86324161abd3af | Trojan |     |
+| Hostname| noah-sk[.]com | C2/Staging Server |
+| IPv4 | 154.19.248.17 | IP Server Hosting (landing page) |
+|SHA 256(zip)| 1929f509a3c29e8dfb0ebb10d5b89085c1bca863980364e79f635b9a3c68cacb | Hash Zip install_sint007.zip |
+|SHA 256(exe)| 999bb7fefddf57646a6f57907712c1b0163e877d7938e9ddc801124555696d71 | Hash Exe install_sint007.exe |
+
