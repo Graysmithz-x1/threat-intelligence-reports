@@ -1,9 +1,9 @@
 # Analisis Kampanye Drive-By Malware Delivery: Impersonasi Brand Disney/Netflix (cn-netflix[.]cn)
  
-- **Klasifikasi:** TLP:CLEAR (Research Purpose Only)
-- **Penulis:** Graysmithz-x1
-- **Tanggal:** 13 Agustus 2026
-- **Disclaimer:** Analisis ini dilakukan murni untuk tujuan riset dan edukasi keamanan siber di lingkungan laboratorium terisolasi. Tidak ada data pribadi atau sistem produksi yang diekspos dalam proses analisis ini.
+**Klasifikasi:** TLP:CLEAR (Research Purpose Only)
+**Penulis:** (dearAngles303)
+**Tanggal:** 13 Agustus 2026
+**Disclaimer:** Analisis ini dilakukan murni untuk tujuan riset dan edukasi keamanan siber di lingkungan laboratorium terisolasi. Tidak ada data pribadi atau sistem produksi yang diekspos dalam proses analisis ini.
  
 ---
  
@@ -11,9 +11,9 @@
  
 Investigasi ini membedah kampanye *Malware Delivery* berbasis web yang memanfaatkan teknik penipuan visual (*brand impersonation*) gabungan antara merek Netflix dan Disney+. Berbeda dengan situs *credential harvesting* konvensional yang mengumpulkan password melalui formulir HTML, situs ini berfungsi sebagai vektor distribusi berkas berbahaya (*Drive-by Download*).
  
-Situs utama menggunakan pemanggilan API asinkron (*JavaScript Fetch*) ke server *staging/C2* eksternal untuk menarik tautan unduhan dengan cara memuat tautan url . Analisis lebih lanjut pada arsitektur backend mengungkap **skema C2 multi-relay dengan retry logic** situs tidak bergantung pada satu server C2 tunggal, melainkan sebuah daftar (`relays.json`) berisi tiga endpoint cadangan, dua di antaranya di-hosting di infrastruktur **Cloudflare Workers** untuk meningkatkan resiliensi terhadap takedown.
+Situs utama menggunakan pemanggilan API asinkron (*JavaScript Fetch*) ke server *staging/C2* eksternal untuk menarik tautan unduhan secara dinamis. Analisis lebih lanjut pada arsitektur backend mengungkap **skema C2 multi-relay dengan retry logic** — situs tidak bergantung pada satu server C2 tunggal, melainkan sebuah daftar (`relays.json`) berisi tiga endpoint cadangan, dua di antaranya di-hosting di infrastruktur **Cloudflare Workers** untuk meningkatkan resiliensi terhadap takedown.
  
-Berkas payload berupa arsip `.zip` berisi biner *executable* bertipe Golang (`install_sint007.exe`). Pemindaian awal pada arsip zip sempat mengindikasikan status *clean*, namun pembedahan secara independen mengonfirmasi bahwa sampel ini merupakan *Trojan Injector* yang terdeteksi oleh 9 vendor Anti-Virus utama. Data WHOIS pada dua domain yang teridentifikasi dalam rantai infeksi (landing page dan relay server) menunjukkan identitas registrant yang berbeda, mengindikasikan kemungkinan model **infrastruktur berlapis (layered infrastructure)** yang umum pada operasi *Phishing-as-a-Service*.
+Berkas payload berupa arsip `.zip` berisi biner *executable* bertipe Golang (`install_sint007.exe`). Pemindaian awal pada level arsip sempat mengindikasikan status *clean*, namun pembedahan biner secara independen mengonfirmasi bahwa sampel ini merupakan *Trojan Injector* yang terdeteksi oleh 9 vendor Anti-Virus utama. Data WHOIS pada dua domain yang teridentifikasi dalam rantai infeksi (landing page dan relay server) menunjukkan identitas registrant yang berbeda, mengindikasikan kemungkinan model **infrastruktur berlapis (layered infrastructure)** yang umum pada operasi *Phishing-as-a-Service*.
  
 ---
  
@@ -30,7 +30,7 @@ Penyebaran *Infostealer* dan *Trojan* melalui situs impersonasi media populer (s
 | **Environment** | Isolated VM (Kali Linux via VirtualBox, Network NAT Mode) |
 | **Tools Statis CLI** | `curl`, `whois`, `dig`, `host`, `grep`, `strings`, `file` |
 | **Tools OSINT & Sandbox** | VirusTotal, Hybrid Analysis, MetaDefender/OPSWAT, crt.sh |
-| **Prinsip Keamanan** | Ekstraksi kode dan pembedahan web dilakukan tanpa mengeksekusi payload di sistem host |
+| **Prinsip Keamanan** | Ekstraksi kode dan pembedahan biner dilakukan tanpa mengeksekusi payload di sistem host |
  
 ---
  
@@ -43,7 +43,7 @@ Penyebaran *Infostealer* dan *Trojan* melalui situs impersonasi media populer (s
 | 13 Agustus 2026 | Sampel ditemukan via Phishunt.io; pengumpulan data OSINT domain dan ekstraksi kode HTML/JS mentah |
 | 13 Agustus 2026 | Analisis fungsi `fetch()` dan identifikasi server C2 awal (`noah-sk[.]com`) |
 | 13 Agustus 2026 | Ekstraksi `relays.json`, ditemukan skema multi-relay dengan 3 endpoint C2 |
-| 13 Agustus 2026 | Pengunduhan arsip `install_sint007.zip` dan menggali informasi`install_sint007.exe` |
+| 13 Agustus 2026 | Pengunduhan arsip `install_sint007.zip` dan pembedahan biner `install_sint007.exe` |
 | 13 Agustus 2026 | Verifikasi deteksi Trojan pada OPSWAT MetaDefender (9/26 Detections) |
 | 13 Agustus 2026 | Verifikasi WHOIS + crt.sh untuk `noah-ssh[.]com.cn`, ditemukan registrant berbeda dari domain landing page |
  
@@ -69,7 +69,7 @@ Salah satu domain di dalam `relays.json` (lihat 5.4) turut dianalisis secara ter
 * **Registrar:** Web Commerce Communications Limited
 * **Name Server:** `a9.share-dns.com` & `b9.share-dns.com`
 * **Sertifikat (crt.sh):** 2 sertifikat Let's Encrypt, keduanya *issued* 2026-08-10 (bertepatan dengan tanggal registrasi) — tidak ditemukan histori sertifikat lama pada domain ini.
-**Catatan Attribution:** Registrant dan registrar pada domain relay **berbeda sepenuhnya** dari domain landing page. Kedua domain hanya terhubung secara fungsional melalui kode JavaScript, bukan melalui data registrasi. Pola ini konsisten dengan model infrastruktur berlapis, di mana operator relay/C2 kemungkinan beroperasi independen dari operator yang men-deploy landing page individual . sebuah karakteristik umum pada operasi *Phishing-as-a-Service*, dan sekaligus strategi yang mempersulit *attribution* satu-ke-satu.
+**Catatan Attribution:** Registrant dan registrar pada domain relay **berbeda sepenuhnya** dari domain landing page. Kedua domain hanya terhubung secara fungsional melalui kode JavaScript, bukan melalui data registrasi. Pola ini konsisten dengan model infrastruktur berlapis, di mana operator relay/C2 kemungkinan beroperasi independen dari operator yang men-deploy landing page individual — sebuah karakteristik umum pada operasi *Phishing-as-a-Service*, dan sekaligus strategi yang mempersulit *attribution* satu-ke-satu.
  
 ### 5.3 UI/UX Deception Analysis (Human Layer)
 Secara visual, antarmuka situs menggunakan tema gelap dengan logo gabungan *Disney + 流媒体影视*. Terdapat ketidakcocokan (*mismatch*) struktural antara nama domain (`cn-netflix`) dengan konten UI yang didominasi teks dan logo Disney+. Hal ini mengindikasikan penggunaan *Phishing Kit/Template* massal oleh penyerang tanpa melakukan penyesuaian variabel footer secara menyeluruh.
@@ -181,11 +181,20 @@ Kampanye ini menunjukkan evolusi taktik *threat actor* yang bergeser dari pencur
 3. **Filtering Jaringan:** Blokir akses keluar ke seluruh domain dan IP pada tabel IOC di atas — termasuk kedua subdomain `workers.dev`, karena keduanya berfungsi sebagai fallback C2 aktif.
 4. **Deteksi Berbasis Perilaku, Bukan Hanya Domain:** Karena kampanye ini terbukti mampu berpindah endpoint C2 secara otomatis (fallback multi-relay), pemblokiran satu domain saja tidak cukup — disarankan monitoring pola network request beruntun ke banyak domain berbeda dalam waktu singkat sebagai indikator perilaku (behavioral IOC).
 5. **Audit Keamanan Aplikasi:** Untuk entitas korporat, pastikan kebijakan Zero Trust diterapkan dan lakukan verifikasi integritas berkas sebelum dieksekusi pada perangkat kerja.
+
+## UPDATE LIMITATION (22/09/2026):
+
+1. Status Endpoint Cloudflare Workers:
+   Berdasarkan verifikasi real-time pada 22 September 2026 (04:34:16 UTC), kedua endpoint Cloudflare Workers (noah-relay.wotudj578.workers.dev dan noah-relay2.wotudj578.workers.dev) terkonfirmasi MASIH AKTIF. 
+   - HTTP Response: 403 Forbidden
+   - Node Location: Cloudflare Singapore Datacenter (CF-Ray: a3ee9ab2a91af8fc-SIN)
+   - Catatan: Respon 403 menunjukkan worker masih ter-deploy di jaringan Cloudflare namun menolak direct request tanpa parameter/akses yang sesuai.
+
+2. Status Domain Landing Page (cn-netflix.cn):
+   Domain cn-netflix.cn saat ini sudah teridentifikasi sebagai situs berbahaya dan diblokir oleh Google Safe Browsing / Mozilla Firefox (tampilan peringatan "Deceptive site ahead").
+
 ---
- 
 ## 10. Batasan Analisis (Limitations)
  
 - Analisis biner terbatas pada static analysis (`strings`) dan hasil sandbox pihak ketiga (Hybrid Analysis); belum dilakukan dynamic/behavioral analysis independen (monitoring registry, proses, dan network secara langsung dalam sandbox milik peneliti).
-- Proses target spesifik dari kapabilitas *process injection* belum terverifikasi.
-- Status aktif/tidaknya kedua endpoint `workers.dev` pada saat publikasi perlu diverifikasi ulang, mengingat sifatnya yang dapat di-deploy/dicabut dengan cepat.
- 
+- Proses target spesifik dari kapabilitas *process injection* belum terverifikasi
